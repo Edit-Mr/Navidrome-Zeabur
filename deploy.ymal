@@ -1,0 +1,105 @@
+apiVersion: zeabur.com/v1
+kind: Template
+metadata:
+  name: FileManagerAndNavidrome
+spec:
+  description: File Manager and Navidrome deployment on Zeabur
+  icon: https://example.com/icon.png
+  coverImage: https://example.com/cover.png
+  variables:
+    - key: PUBLIC_DOMAIN
+      type: DOMAIN
+      name: Domain
+      description: Specify the domain for the services.
+  services:
+    - name: FileManager
+      icon: https://example.com/filemanager-icon.png
+      template: PREBUILT
+      spec:
+        source:
+          image: filebrowser/filebrowser:latest
+        ports:
+          - id: web
+            port: 80
+            type: HTTP
+        volumes:
+          - id: files
+            dir: /srv
+        instructions:
+          - type: TEXT
+            title: FileManager Access URL
+            content: https://${PUBLIC_DOMAIN}
+
+    - name: Navidrome
+      icon: https://example.com/navidrome-icon.png
+      template: PREBUILT
+      spec:
+        source:
+          image: deluan/navidrome:latest
+          runAsUserID: 1000
+        ports:
+          - id: web
+            port: 4533
+            type: HTTP
+        volumes:
+          - id: data
+            dir: /data
+          - id: music
+            dir: /music
+        env:
+          ND_SCANSCHEDULE:
+            default: "@every 1m"
+          ND_LOGLEVEL:
+            default: info
+          ND_SESSIONTIMEOUT:
+            default: 240h
+          ND_ENABLETRANSCODINGCONFIG:
+            default: "true"
+          ND_ENABLEGRAVATAR:
+            default: "true"
+          ND_ENABLESHARING:
+            default: "true"
+        instructions:
+          - type: TEXT
+            title: Navidrome Access URL
+            content: https://${PUBLIC_DOMAIN}
+
+    - name: Nginx
+      icon: https://example.com/nginx-icon.png
+      template: PREBUILT
+      spec:
+        source:
+          image: nginx:alpine
+        ports:
+          - id: web
+            port: 80
+            type: HTTP
+        volumes:
+          - id: nginx-conf
+            dir: /etc/nginx/conf.d
+          - id: nginx-html
+            dir: /usr/share/nginx/html
+        env:
+          NGINX_HOST:
+            default: ${PUBLIC_DOMAIN}
+          NGINX_PORT:
+            default: "80"
+        instructions:
+          - type: TEXT
+            title: Nginx Access URL
+            content: https://${PUBLIC_DOMAIN}
+
+
+localization:
+  zh-TW:
+    description: File Manager 和 Navidrome 在 Zeabur 上的部署模板。
+    readme: |-
+      # File Manager 和 Navidrome 部署模板
+      本模板提供 File Manager 和 Navidrome 的部署方案，適合在 Zeabur 上快速構建媒體及文件管理服務。
+
+      ## 功能
+      - File Manager：簡易文件管理器。
+      - Navidrome：音樂伺服器，支援多種功能。
+
+      ## 使用方法
+      部署模板後，指定域名即可透過域名訪問服務。
